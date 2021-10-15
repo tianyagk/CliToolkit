@@ -16,3 +16,4 @@
 # vendor/
 *.mod
 go.mod
+*.mod
