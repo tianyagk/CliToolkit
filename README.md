@@ -1,8 +1,8 @@
-# cli_tool
+# CliToolkit
 
 **Blocking CMD shell interaction tool.**
 
-cli_tool is a small cli package for Go.
+CliToolkit is a small cli package for Go CMD shell interaction application.
 
 ## Installation
 
