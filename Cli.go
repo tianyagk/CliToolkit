@@ -2,6 +2,7 @@ package CliToolkit
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -16,7 +17,7 @@ type Event struct {
 }
 var FuncMap = map[string]Event{}
 
-func Client(config map[string]string, funcMap map[string]Event) {
+func Client(config map[string]string, funcMap map[string]Event) error{
 	// Init do_help func
 	funcMap["help"] = Event{doHelp, "Cli command help", "-h"}
 	funcMap["exit"] = Event{doExit, "Exit Cli Toolkit", "-e"}
@@ -46,11 +47,21 @@ func Client(config map[string]string, funcMap map[string]Event) {
 		if err != nil {
 			_, err := fmt.Fprintln(os.Stderr, err)
 			if err != nil {
-				return 
+				return err
 			}
 		}
 		// Execute Command
 		doExecute(cmdString, funcMap)
+
+	}
+}
+
+func errHandler(err error) {
+	if err != nil {
+		_, err := fmt.Fprintln(os.Stderr, err)
+		if err != nil {
+			return 
+		}
 	}
 }
 
@@ -69,8 +80,10 @@ func doExecute(cmdString string, funcMap map[string]Event) {
 		}
 	}
 	// Not found command handler
-	fmt.Println("Not find command: "+arrCommandStr[0])
+	//fmt.Println("Not find command: "+arrCommandStr[0])
+	errHandler(errors.New("Not find command: "+arrCommandStr[0]))
 }
+
 
 func doHelp(str string) {
 	if str == "" {
@@ -88,6 +101,6 @@ func doHelp(str string) {
 
 
 func doExit(str string) {
-	fmt.Println("Exit "+Conf["name"])
+	fmt.Println("Exit "+Conf["name"] + str)
 	os.Exit(0)
 }
