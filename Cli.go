@@ -1,4 +1,4 @@
-package CliToolkit
+package cli_toolkit
 
 import (
 	"bufio"
