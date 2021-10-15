@@ -11,34 +11,32 @@ import (
 var Conf = make(map[string]string)
 
 type Event struct {
-	DoFunc func(s string)
+	DoFunc func(s string) error
 	Description string
 	Flag string
+	ErrorHandler func(e error)
 }
 var FuncMap = map[string]Event{}
 
 func Client(config map[string]string, funcMap map[string]Event) error{
 	// Init do_help func
-	funcMap["help"] = Event{doHelp, "Cli command help", "-h"}
-	funcMap["exit"] = Event{doExit, "Exit Cli Toolkit", "-e"}
+	funcMap["help"] = Event{doHelp, "Cli command help", "-h", DefaultErrorHandler}
+	funcMap["exit"] = Event{doExit, "Exit Cli Toolkit", "-e", DefaultErrorHandler}
 
 	// Print intro string
 	intro, ok := config["intro"]
 	if ok {
 		fmt.Println(intro)
 	}
-
 	short, ok := config["short"]
 	if ok {
 		fmt.Println(short)
 	}
-
 	// Set prompt style
 	prompt, ok := config["prompt"]
 	if !ok {
 		prompt = ">> "
 	}
-
 	// Blocking interaction
 	for {
 		fmt.Print(prompt)
@@ -52,11 +50,10 @@ func Client(config map[string]string, funcMap map[string]Event) error{
 		}
 		// Execute Command
 		doExecute(cmdString, funcMap)
-
 	}
 }
 
-func errHandler(err error) {
+func DefaultErrorHandler(err error) {
 	if err != nil {
 		_, err := fmt.Fprintln(os.Stderr, err)
 		if err != nil {
@@ -68,24 +65,29 @@ func errHandler(err error) {
 func doExecute(cmdString string, funcMap map[string]Event) {
 	cmdString = strings.TrimSuffix(cmdString, "\n")
 	arrCommandStr := strings.Fields(cmdString)
-	for idx, value := range funcMap {
-		if (arrCommandStr[0] == idx) || (arrCommandStr[0] == value.Flag) {
+	for cmd, event := range funcMap {
+		if (arrCommandStr[0] == cmd) || (arrCommandStr[0] == event.Flag) {
 			if len(cmdString) == len(arrCommandStr[0]) {
-				value.DoFunc(strings.TrimPrefix(cmdString, cmdString))
+				err := event.DoFunc(strings.TrimPrefix(cmdString, cmdString))
+				if err != nil {
+					event.ErrorHandler(err)
+				}
 				return
 			} else {
-				value.DoFunc(strings.TrimPrefix(cmdString, arrCommandStr[0]+" "))
+				err := event.DoFunc(strings.TrimPrefix(cmdString, arrCommandStr[0]+" "))
+				if err != nil {
+					event.ErrorHandler(err)
+				}
 				return
 			}
 		}
 	}
 	// Not found command handler
-	//fmt.Println("Not find command: "+arrCommandStr[0])
-	errHandler(errors.New("Not find command: "+arrCommandStr[0]))
+	DefaultErrorHandler(errors.New("Can not find command: "+arrCommandStr[0]))
 }
 
 
-func doHelp(str string) {
+func doHelp(str string) error {
 	if str == "" {
 		for key, value:= range FuncMap {
 			fmt.Println(key, "	|Flag:", value.Flag,"	|", value.Description)
@@ -94,13 +96,15 @@ func doHelp(str string) {
 		if _, ok := FuncMap[str]; ok {
 			fmt.Println(str, "	|Flag: ", FuncMap[str].Flag,"	| ", FuncMap[str].Description)
 		} else {
-			fmt.Println("Can not find command: ", str)
+			return errors.New("Can not find command: "+str)
 		}
 	}
+	return nil
 }
 
 
-func doExit(str string) {
+func doExit(str string) error {
 	fmt.Println("Exit "+Conf["name"] + str)
 	os.Exit(0)
+	return nil
 }
