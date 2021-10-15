@@ -1,3 +1,3 @@
-module github.com/tianmyagk/CliToolkit
+module github.com/tianyagk/CliToolkit
 
 go 1.17
