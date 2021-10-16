@@ -8,35 +8,32 @@ import (
 	"strings"
 )
 
-var Conf = make(map[string]string)
-
 type Event struct {
-	DoFunc func(s string) error
-	Description string
-	Flag string
+	DoFunc       func(s string, cmd Command) error
+	Description  string
+	Flag         string
 	ErrorHandler func(e error)
 }
-var FuncMap = map[string]Event{}
 
-func Client(config map[string]string, funcMap map[string]Event) error{
+type Command struct {
+	Use     string
+	Intro   string
+	Short   string
+	Long    string
+	Prompt  string
+	FuncMap map[string]Event
+}
+
+func (cmd Command) Run() {
 	// Init do_help func
-	funcMap["help"] = Event{doHelp, "Cli command help", "-h", DefaultErrorHandler}
-	funcMap["exit"] = Event{doExit, "Exit Cli Toolkit", "-e", DefaultErrorHandler}
+	cmd.FuncMap["help"] = Event{doHelp, "Cli command help", "-h", DefaultErrorHandler}
+	cmd.FuncMap["exit"] = Event{doExit, "Exit Cli Toolkit", "-e", DefaultErrorHandler}
 
 	// Print intro string
-	intro, ok := config["intro"]
-	if ok {
-		fmt.Println(intro)
-	}
-	short, ok := config["short"]
-	if ok {
-		fmt.Println(short)
-	}
-	// Set prompt style
-	prompt, ok := config["prompt"]
-	if !ok {
-		prompt = ">> "
-	}
+	fmt.Println(cmd.Intro)
+	fmt.Println(cmd.Short)
+	prompt := cmd.Prompt
+
 	// Blocking interaction
 	for {
 		fmt.Print(prompt)
@@ -45,11 +42,11 @@ func Client(config map[string]string, funcMap map[string]Event) error{
 		if err != nil {
 			_, err := fmt.Fprintln(os.Stderr, err)
 			if err != nil {
-				return err
+				return
 			}
 		}
 		// Execute Command
-		doExecute(cmdString, funcMap)
+		doExecute(cmdString, cmd)
 	}
 }
 
@@ -57,24 +54,25 @@ func DefaultErrorHandler(err error) {
 	if err != nil {
 		_, err := fmt.Fprintln(os.Stderr, err)
 		if err != nil {
-			return 
+			return
 		}
 	}
 }
 
-func doExecute(cmdString string, funcMap map[string]Event) {
+func doExecute(cmdString string, cmd Command) {
+	funcMap := cmd.FuncMap
 	cmdString = strings.TrimSuffix(cmdString, "\n")
 	arrCommandStr := strings.Fields(cmdString)
-	for cmd, event := range funcMap {
-		if (arrCommandStr[0] == cmd) || (arrCommandStr[0] == event.Flag) {
+	for cmdStr, event := range funcMap {
+		if (arrCommandStr[0] == cmdStr) || (arrCommandStr[0] == event.Flag) {
 			if len(cmdString) == len(arrCommandStr[0]) {
-				err := event.DoFunc(strings.TrimPrefix(cmdString, cmdString))
+				err := event.DoFunc(strings.TrimPrefix(cmdString, cmdString), cmd)
 				if err != nil {
 					event.ErrorHandler(err)
 				}
 				return
 			} else {
-				err := event.DoFunc(strings.TrimPrefix(cmdString, arrCommandStr[0]+" "))
+				err := event.DoFunc(strings.TrimPrefix(cmdString, arrCommandStr[0]+" "), cmd)
 				if err != nil {
 					event.ErrorHandler(err)
 				}
@@ -83,28 +81,26 @@ func doExecute(cmdString string, funcMap map[string]Event) {
 		}
 	}
 	// Not found command handler
-	DefaultErrorHandler(errors.New("Can not find command: "+arrCommandStr[0]))
+	DefaultErrorHandler(errors.New("Can not find command: " + arrCommandStr[0]))
 }
 
-
-func doHelp(str string) error {
+func doHelp(str string, cmd Command) error {
 	if str == "" {
-		for key, value:= range FuncMap {
-			fmt.Println(key, "	|Flag:", value.Flag,"	|", value.Description)
+		for key, value := range cmd.FuncMap {
+			fmt.Println(key, "	|Flag:", value.Flag, "	|", value.Description)
 		}
 	} else {
-		if _, ok := FuncMap[str]; ok {
-			fmt.Println(str, "	|Flag: ", FuncMap[str].Flag,"	| ", FuncMap[str].Description)
+		if _, ok := cmd.FuncMap[str]; ok {
+			fmt.Println(str, "	|Flag: ", cmd.FuncMap[str].Flag, "	| ", cmd.FuncMap[str].Description)
 		} else {
-			return errors.New("Can not find command: "+str)
+			return errors.New("Can not find command: " + str)
 		}
 	}
 	return nil
 }
 
-
-func doExit(str string) error {
-	fmt.Println("Exit "+Conf["name"] + str)
+func doExit(str string, cmd Command) error {
+	fmt.Println("Exit " + cmd.Use + str)
 	os.Exit(0)
 	return nil
 }
