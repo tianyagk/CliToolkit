@@ -1,6 +1,6 @@
 # CliToolkit
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/tianyagk/CliToolkit)](https://goreportcard.com/report/github.com/tianyagk/CliToolkit)  
+[![Go Report Card](https://goreportcard.com/badge/github.com/tianyagk/CliToolkit)](https://goreportcard.com/report/github.com/tianyagk/CliToolkit)  ![Lines of code](https://img.shields.io/tokei/lines/github/tianyagk/CliToolkit)
 **Blocking command line shell interaction tool.**
 
 CliToolkit is a small cmd package for Go cmd shell interaction application.
