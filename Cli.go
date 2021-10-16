@@ -75,6 +75,7 @@ func DefaultErrorHandler(err error) {
 func doExecute(cmdString string, cmd Command) {
 	funcMap := cmd.FuncMap
 	cmdString = strings.TrimSuffix(cmdString, "\n")
+	cmdString = strings.TrimSuffix(cmdString, "\r")
 	arrCommandStr := strings.Fields(cmdString)
 	for cmdStr, event := range funcMap {
 		if (arrCommandStr[0] == cmdStr) || (arrCommandStr[0] == event.Flag) {
