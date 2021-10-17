@@ -61,6 +61,7 @@ func CustomErrorHandler(err error) {
 
 demo.go
 
+```go
 package main
 
 import (
