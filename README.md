@@ -57,4 +57,59 @@ func CustomErrorHandler(err error) {
 
 
 
-## Contributions
+## Example
+
+demo.go
+
+package main
+
+import (
+	"demo/CliToolkit"
+	"errors"
+	"fmt"
+)
+
+func main() {
+	CommandClient := CliToolkit.Command{
+		Use:    "DemoApp",
+		Intro:  "CliToolkit Application",
+		Short:  "Hello, welcome CliToolkit by Golang",
+		Long:   "long:",
+		Prompt: ">> ",
+	}
+
+	FuncMap := make(map[string]CliToolkit.Event)
+	FuncMap["echo"] = CliToolkit.Event{DoFunc: echo, Description: "Repeat input string", Flag: "-echo", ErrorHandler: CliToolkit.DefaultErrorHandler}
+	FuncMap["error"] = CliToolkit.Event{DoFunc: errorMaker, Description: "Make an error", Flag: "-error", ErrorHandler: CliToolkit.DefaultErrorHandler}
+
+	CommandClient.FuncMap = FuncMap
+	CommandClient.Run()
+}
+
+func echo(str string, _ CliToolkit.Command) error {
+	fmt.Println(str)
+	return nil
+}
+
+func errorMaker(str string, _ CliToolkit.Command) error {
+	return errors.New(fmt.Sprint("trouble maker", str))
+}
+
+```
+
+Launch in the command line:
+
+```shell
+CliToolkit Application
+Hello, welcome CliToolkit by Golang
+>> help
+help    |Flag: -h       | Cli command help
+exit    |Flag: -e       | Exit Cli Toolkit
+echo    |Flag: -echo    | Repeat input string
+error   |Flag: -error   | Make an error
+>> echo hello
+hello
+>> error
+trouble maker
+>> exit
+```
