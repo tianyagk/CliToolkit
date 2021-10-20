@@ -65,7 +65,7 @@ demo.go
 package main
 
 import (
-	"github/tianyagk/CliToolkit"
+	"github.com/tianyagk/CliToolkit"
 	"errors"
 	"fmt"
 )
