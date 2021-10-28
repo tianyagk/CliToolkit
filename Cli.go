@@ -102,7 +102,7 @@ func doHelp(args []string, cmd Cli) error {
 	} else {
 		for _, arg := range args{
 			if _, ok := cmd.FuncMap[arg]; ok {
-				fmt.Println(arg, "	|Flag: ", "	| ", cmd.FuncMap[arg].Description)
+				fmt.Println(arg, "	| ", cmd.FuncMap[arg].Description)
 			} else {
 				return errors.New("Can not find command: " + arg)
 			}
