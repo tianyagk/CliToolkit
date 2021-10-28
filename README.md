@@ -20,7 +20,7 @@ Initial your interaction app with CliToolkit:
 
 ```go
 // Init and Setup Command Client with Function Mapper
-CommandClient := CliToolkit.Command{
+CommandClient := CliToolkit.Cli{
 		Use:    "DefaultApp",
 		Intro:  "CliToolkit Application",
 		Short:  "Hello, welcome CliToolkit by Golang",
@@ -77,7 +77,7 @@ func main() {
 	_, ok := g["init"]
 	fmt.Println(ok)
 
-	CommandClient := Cli{
+	CommandClient := CliToolkit.Cli{
 		Use:    "DemoApp",
 		Intro:  "CliToolkit Application",
 		Short:  "Hello, welcome CliToolkit by Golang",
@@ -85,9 +85,9 @@ func main() {
 		Prompt: ">> ",
 	}
 
-	FuncMap := make(map[string]Event)
-	FuncMap["echo"] = Event{DoFunc: echo, Description: "Repeat input string", ErrorHandler: DefaultErrorHandler}
-	FuncMap["error"] = Event{DoFunc: errorMaker, Description: "Make an error", ErrorHandler: DefaultErrorHandler}
+	FuncMap := make(map[string]CliToolkit.Event)
+	FuncMap["echo"] = CliToolkit.Event{DoFunc: echo, Description: "Repeat input string", CliToolkit.ErrorHandler: DefaultErrorHandler}
+	FuncMap["error"] = CliToolkit.Event{DoFunc: errorMaker, Description: "Make an error", CliToolkit.ErrorHandler: DefaultErrorHandler}
 
 	CommandClient.FuncMap = FuncMap
 	CommandClient.Run()
