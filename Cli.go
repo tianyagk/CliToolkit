@@ -100,10 +100,12 @@ func doHelp(args []string, cmd Cli) error {
 			fmt.Println(key, "	|", value.Description)
 		}
 	} else {
-		if _, ok := cmd.FuncMap[args[0]]; ok {
-			fmt.Println(args, "	|Flag: ", "	| ", cmd.FuncMap[args[0]].Description)
-		} else {
-			return errors.New("Can not find command: " + args[0])
+		for _, arg := range args{
+			if _, ok := cmd.FuncMap[arg]; ok {
+				fmt.Println(arg, "	|Flag: ", "	| ", cmd.FuncMap[arg].Description)
+			} else {
+				return errors.New("Can not find command: " + arg)
+			}
 		}
 	}
 	return nil
