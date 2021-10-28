@@ -11,7 +11,7 @@
 // CliToolkit is a small cmd package for Go cmd shell interaction application
 // inspired by go and cobra
 
-package CliToolkit
+package main
 
 import (
 	"bufio"
@@ -22,13 +22,13 @@ import (
 )
 
 type Event struct {
-	DoFunc       func(s string, cmd Command) error
+	DoFunc       func(args []string, cmd Cli) error
 	Description  string
-	Flag         string
+	Args         []string
 	ErrorHandler func(e error)
 }
 
-type Command struct {
+type Cli struct {
 	Use     string
 	Intro   string
 	Short   string
@@ -37,10 +37,10 @@ type Command struct {
 	FuncMap map[string]Event
 }
 
-func (cmd Command) Run() {
+func (cmd Cli) Run() {
 	// Init do_help func
-	cmd.FuncMap["help"] = Event{doHelp, "Cli command help", "-h", DefaultErrorHandler}
-	cmd.FuncMap["exit"] = Event{doExit, "Exit Cli Toolkit", "-e", DefaultErrorHandler}
+	cmd.FuncMap["help"] = Event{doHelp, "Cli command help", nil,DefaultErrorHandler}
+	cmd.FuncMap["exit"] = Event{doExit, "Exit Cli Toolkit", nil,DefaultErrorHandler}
 
 	// Print intro string
 	fmt.Println(cmd.Intro)
@@ -58,13 +58,14 @@ func (cmd Command) Run() {
 				return
 			}
 		}
-		// Execute Command
+		// Execute Cli
 		doExecute(cmdString, cmd)
 	}
 }
 
 func DefaultErrorHandler(err error) {
 	if err != nil {
+		fmt.Print("\r")
 		_, err := fmt.Fprintln(os.Stderr, err)
 		if err != nil {
 			return
@@ -72,49 +73,44 @@ func DefaultErrorHandler(err error) {
 	}
 }
 
-func doExecute(cmdString string, cmd Command) {
+func doExecute(cmdString string, cmd Cli) {
 	funcMap := cmd.FuncMap
+
+	// remove mark '\n', '\r'
 	cmdString = strings.TrimSuffix(cmdString, "\n")
 	cmdString = strings.TrimSuffix(cmdString, "\r")
 	arrCommandStr := strings.Fields(cmdString)
-	for cmdStr, event := range funcMap {
-		if (arrCommandStr[0] == cmdStr) || (arrCommandStr[0] == event.Flag) {
-			if len(cmdString) == len(arrCommandStr[0]) {
-				err := event.DoFunc(strings.TrimPrefix(cmdString, cmdString), cmd)
-				if err != nil {
-					event.ErrorHandler(err)
-				}
-				return
-			} else {
-				err := event.DoFunc(strings.TrimPrefix(cmdString, arrCommandStr[0]+" "), cmd)
-				if err != nil {
-					event.ErrorHandler(err)
-				}
-				return
-			}
+
+	flag := arrCommandStr[0]
+	doEvent, ok := funcMap[flag]
+	if !ok{
+		DefaultErrorHandler(errors.New("Can not find command: " + arrCommandStr[0]))
+	} else {
+		args := strings.Fields(strings.TrimPrefix(cmdString, arrCommandStr[0]))
+		err := doEvent.DoFunc(args, cmd)
+		if err != nil {
+			doEvent.ErrorHandler(err)
 		}
 	}
-	// Not found command handler
-	DefaultErrorHandler(errors.New("Can not find command: " + arrCommandStr[0]))
 }
 
-func doHelp(str string, cmd Command) error {
-	if str == "" {
+func doHelp(args []string, cmd Cli) error {
+	if len(args) == 0 {
 		for key, value := range cmd.FuncMap {
-			fmt.Println(key, "	|Flag:", value.Flag, "	|", value.Description)
+			fmt.Println(key, "	|", value.Description)
 		}
 	} else {
-		if _, ok := cmd.FuncMap[str]; ok {
-			fmt.Println(str, "	|Flag: ", cmd.FuncMap[str].Flag, "	| ", cmd.FuncMap[str].Description)
+		if _, ok := cmd.FuncMap[args[0]]; ok {
+			fmt.Println(args, "	|Flag: ", "	| ", cmd.FuncMap[args[0]].Description)
 		} else {
-			return errors.New("Can not find command: " + str)
+			return errors.New("Can not find command: " + args[0])
 		}
 	}
 	return nil
 }
 
-func doExit(str string, cmd Command) error {
-	fmt.Println("Exit " + cmd.Use + str)
+func doExit(args []string, cmd Cli) error {
+	fmt.Println("Exit " + cmd.Use + args[0])
 	os.Exit(0)
 	return nil
 }

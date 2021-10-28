@@ -29,14 +29,14 @@ CommandClient := CliToolkit.Command{
 	}
 
 FuncMap := make(map[string]CliToolkit.Event)
-FuncMap["echo"] = CliToolkit.Event{DoFunc: echo, Description: "Repeat input string", Flag: "-echo", ErrorHandler: CliToolkit.DefaultErrorHandler}
+FuncMap["echo"] = CliToolkit.Event{DoFunc: echo, Description: "Repeat input string", ErrorHandler: CliToolkit.DefaultErrorHandler}
 
 CommandClient.FuncMap = FuncMap
 CommandClient.Run()
 
 // Define your command func here
-func echo(str string, _ CliToolkit.Command) error {
-	fmt.Println(str)
+func echo(args []string, _ Cli) error {
+	fmt.Println(args)
 	return nil
 }
 ```
@@ -71,7 +71,13 @@ import (
 )
 
 func main() {
-	CommandClient := CliToolkit.Command{
+	g := make(map[string]int)
+	g["init"] = 10
+
+	_, ok := g["init"]
+	fmt.Println(ok)
+
+	CommandClient := Cli{
 		Use:    "DemoApp",
 		Intro:  "CliToolkit Application",
 		Short:  "Hello, welcome CliToolkit by Golang",
@@ -79,21 +85,21 @@ func main() {
 		Prompt: ">> ",
 	}
 
-	FuncMap := make(map[string]CliToolkit.Event)
-	FuncMap["echo"] = CliToolkit.Event{DoFunc: echo, Description: "Repeat input string", Flag: "-echo", ErrorHandler: CliToolkit.DefaultErrorHandler}
-	FuncMap["error"] = CliToolkit.Event{DoFunc: errorMaker, Description: "Make an error", Flag: "-error", ErrorHandler: CliToolkit.DefaultErrorHandler}
+	FuncMap := make(map[string]Event)
+	FuncMap["echo"] = Event{DoFunc: echo, Description: "Repeat input string", ErrorHandler: DefaultErrorHandler}
+	FuncMap["error"] = Event{DoFunc: errorMaker, Description: "Make an error", ErrorHandler: DefaultErrorHandler}
 
 	CommandClient.FuncMap = FuncMap
 	CommandClient.Run()
 }
 
-func echo(str string, _ CliToolkit.Command) error {
-	fmt.Println(str)
+func echo(args []string, _ Cli) error {
+	fmt.Println(args)
 	return nil
 }
 
-func errorMaker(str string, _ CliToolkit.Command) error {
-	return errors.New(fmt.Sprint("trouble maker", str))
+func errorMaker(args []string, _ Cli) error {
+	return errors.New(fmt.Sprint("trouble maker ", args))
 }
 
 ```
@@ -104,13 +110,13 @@ Launch in the command line:
 CliToolkit Application
 Hello, welcome CliToolkit by Golang
 >> help
-help    |Flag: -h       | Cli command help
-exit    |Flag: -e       | Exit Cli Toolkit
-echo    |Flag: -echo    | Repeat input string
-error   |Flag: -error   | Make an error
+error 	| Make an error
+help 	| Cli command help
+exit 	| Exit Cli Toolkit
+echo 	| Repeat input string
 >> echo hello
 hello
->> error
-trouble maker
+>> error Ivan
+trouble maker Ivan
 >> exit
 ```
