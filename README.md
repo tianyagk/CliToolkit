@@ -71,12 +71,6 @@ import (
 )
 
 func main() {
-	g := make(map[string]int)
-	g["init"] = 10
-
-	_, ok := g["init"]
-	fmt.Println(ok)
-
 	CommandClient := CliToolkit.Cli{
 		Use:    "DemoApp",
 		Intro:  "CliToolkit Application",
